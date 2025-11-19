@@ -1,0 +1,17 @@
+.header{
+    height: 80px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    background-color: white;
+    box-shadow: 0px 1px 3px 0px #0000001a, 0px 1px 2px 0px #0000000f;
+}
+.header-name{
+    font-size: large;
+    font-weight: 700;
+}
+
+.header-image{
+    width: 50px;
+}
