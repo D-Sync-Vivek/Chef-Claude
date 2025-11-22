@@ -7,10 +7,6 @@ export default function Main() {
   const [ingredients, setIngredients] = useState([]);
   const [recipeShown, setRecipeShown] = useState(false)
 
-  const ingredientsListItems = ingredients.map((ingredient) => {
-    return <li key={ingredient}>{ingredient}</li>;
-  });
-
   function addIngredient(formData) {
     const newIngredient = formData.get("ingredient");
     setIngredients((prevIngredients) => [...prevIngredients, newIngredient]);
@@ -34,7 +30,7 @@ export default function Main() {
       </form>
 
       {/* ingredients list and CTA button Component */}
-      <IngredientsList ingredient={ingredients} list={ingredientsListItems} toggle={toggleRecipeShown}/>
+      <IngredientsList ingredients={ingredients} toggle={toggleRecipeShown}/>
 
       {/* show ClaudeRecipe Component when we have more than 3 ingredients. */}
       {recipeShown && <ClaudeRecipe/>}
