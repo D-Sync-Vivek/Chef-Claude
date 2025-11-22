@@ -46,8 +46,9 @@ main{
     font-weight: 500;
 }
 
+/* IngredientsList.jsx */
 .main-section{
-    width: 570px;
+    width: 600px;
     margin: auto;
 }
 
@@ -90,6 +91,14 @@ ul.ingredients-list > li {
     font-family: Inter, sans-serif;
     font-size: 0.875rem;
     cursor: pointer;
+}
+
+/* ClaudeRecipe.jsx */
+
+.recipe-section{
+    width: 700px;
+    margin: auto;
+    margin-top: 50px;
 }
 
 .suggested-recipe-container {

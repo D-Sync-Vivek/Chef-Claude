@@ -1,7 +1,9 @@
 export default function IngredientsList(props) {
+
   const ingredientsListItems = props.ingredients.map((ingredient) => {
     return <li key={ingredient}>{ingredient}</li>;
   });
+  
   return (
     props.ingredients.length > 0 && (
       <section className="main-section">
