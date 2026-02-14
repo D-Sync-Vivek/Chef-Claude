@@ -24,8 +24,9 @@ main{
     display: flex;
     justify-content: center;
     gap: 12px;
-    height: 38px;
+    height: auto;
 }
+
 .add-ingredient-form > input{
     padding: 9px 13px;
     border-radius: 5px;
@@ -50,10 +51,24 @@ main{
     cursor: pointer;
 }
 
+@media (max-width: 500px) {
+    .add-ingredient-form {
+        flex-direction: column; 
+    }
+
+    .add-ingredient-form > input,
+    .add-ingredient-form > button {
+        max-width: none;
+        width: 100%;  
+        height: 45px;  
+    }
+}
+
 /* IngredientsList.jsx */
 .main-section{
-    width: 600px;
-    margin: auto;
+    width: 100%;       
+    max-width: 600px;  
+    margin: 20px auto; 
 }
 
 ul.ingredients-list {
@@ -68,6 +83,7 @@ ul.ingredients-list > li {
 .get-recipe-container {
     display: flex;
     justify-content: space-between;
+    flex-direction: column;
     align-items: center;
     border-radius: 8px;
     background: #F0EFEB;
@@ -101,10 +117,18 @@ ul.ingredients-list > li {
     cursor: pointer;
 }
 
+@media (min-width: 600px) {
+    .get-recipe-container {
+        flex-direction: row; /* Side-by-side on larger screens */
+        text-align: left;
+    }
+}
+
 /* ClaudeRecipe.jsx */
 
 .recipe-section{
-    width: 700px;
+    max-width: 700px;
+    width: 100%;
     margin: auto;
     margin-top: 50px;
 }
@@ -118,4 +142,13 @@ ul.ingredients-list > li {
 
 .suggested-recipe-container ul li, .suggested-recipe-container ol li {
     margin-bottom: 8px;
+}
+
+@media (max-width: 400px) {
+    .header-name {
+        font-size: 1.5rem;
+    }
+    main {
+        padding: 20px 15px; 
+    }
 }
