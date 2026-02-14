@@ -46,6 +46,10 @@ main{
     font-weight: 500;
 }
 
+#addIngredientBtn:hover{
+    cursor: pointer;
+}
+
 /* IngredientsList.jsx */
 .main-section{
     width: 600px;
@@ -90,6 +94,10 @@ ul.ingredients-list > li {
     padding: 9px 17px;
     font-family: Inter, sans-serif;
     font-size: 0.875rem;
+    cursor: pointer;
+}
+
+#recipeBtn{
     cursor: pointer;
 }
 

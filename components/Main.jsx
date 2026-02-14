@@ -2,18 +2,19 @@ import React, { useEffect, useRef } from "react";
 import { useState } from "react";
 import ClaudeRecipe from "./ClaudeRecipe";
 import IngredientsList from "./IngredientsList";
-import { getRecipeFromMistral } from "../src/ai";
+import { fetchRecipe } from "../src/api";
 
 export default function Main() {
   const [ingredients, setIngredients] = useState([]);
   const [recipe, setRecipe] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const recipeSection = useRef(null);
 
-  useEffect(() =>{
-    if(recipe !== "" && recipeSection.current !== null){
-      recipeSection.current.scrollIntoView({behavior: "smooth"})
+  useEffect(() => {
+    if (recipe !== "" && recipeSection.current !== null) {
+      recipeSection.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [recipe])
+  }, [recipe]);
 
   function addIngredient(formData) {
     const raw = formData.get("ingredient");
@@ -23,8 +24,18 @@ export default function Main() {
   }
 
   async function getRecipe() {
-    const recipeMarkdown = await getRecipeFromMistral(ingredients);
-    setRecipe(recipeMarkdown);
+    if (isLoading) return;
+    setIsLoading(true);
+
+    try {
+      const data = await fetchRecipe(ingredients);
+      setRecipe(data.recipe);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to generate recipe");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -37,13 +48,14 @@ export default function Main() {
           placeholder="e.g. oregano"
           name="ingredient"
         />
-        <button>+ Add ingridient</button>
+        <button id="addIngredientBtn">+ Add ingridient</button>
       </form>
 
       {/* ingredients list and CTA button Component */}
       <IngredientsList
         ingredients={ingredients}
         toggle={getRecipe}
+        loading={isLoading}
         ref={recipeSection}
       />
 
