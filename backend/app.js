@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { env } from "./config/env.js";
+import { databaseHealth } from "./controllers/health.controller.js";
 import recipeRoutes from "./routes/recipe.routes.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.middleware.js";
 import { sendSuccess } from "./utils/api-response.js";
@@ -23,6 +24,7 @@ app.use(express.json({ limit: "10kb" }));
 app.get("/api/health", (_req, res) =>
   sendSuccess(res, { message: "Chef Claude API is running" })
 );
+app.get("/api/health/db", databaseHealth);
 app.use("/api/recipe", recipeRoutes);
 
 app.use(notFoundHandler);

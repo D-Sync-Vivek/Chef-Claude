@@ -19,7 +19,8 @@ export const env = {
   isProduction,
   port: Number(process.env.PORT) || 3001,
   hfAccessToken: process.env.HF_ACCESS_TOKEN || "",
-  model: process.env.HF_MODEL || "",
+  hfModel: process.env.HF_MODEL || "Qwen/Qwen2.5-7B-Instruct",
+  databaseUrl: process.env.DATABASE_URL || "",
   clientOrigins:
     configuredOrigins.length > 0
       ? configuredOrigins
