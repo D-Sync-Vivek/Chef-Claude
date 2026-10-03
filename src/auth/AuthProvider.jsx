@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AuthContext } from "./AuthContext.js";
 import { fetchCurrentUser, loginUser, logoutUser, registerUser } from "../api.js";
 
@@ -32,10 +32,12 @@ export default function AuthProvider({ children }) {
     };
   }, []);
 
-  async function retry() {
+  // Re-checks the session with the server. Pages call it when an API request returns 401
+  // (session expired), so route guards can send the user to /login.
+  const retry = useCallback(async () => {
     setSession(LOADING);
     setSession(await resolveSession());
-  }
+  }, []);
 
   async function login(email, password) {
     const user = await loginUser(email, password);

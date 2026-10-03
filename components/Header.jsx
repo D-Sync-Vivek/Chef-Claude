@@ -23,6 +23,7 @@ export default function Header() {
       <nav className="header-auth" aria-label="Account">
         {status === "authenticated" && (
           <>
+            <Link to="/recipes">My recipes</Link>
             <span className="header-user">Hi, {user.name}</span>
             <button type="button" className="header-link-button" onClick={handleLogout}>
               Log out

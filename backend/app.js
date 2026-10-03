@@ -30,7 +30,7 @@ app.get("/api/health", (_req, res) =>
 );
 app.get("/api/health/db", databaseHealth);
 app.use("/api/auth", authRoutes);
-app.use("/api/recipe", recipeRoutes);
+app.use("/api/recipes", recipeRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

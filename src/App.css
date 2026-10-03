@@ -273,3 +273,148 @@ ul.ingredients-list > li {
     text-align: center;
     color: #475467;
 }
+
+/* Main.jsx, RecipePreferences.jsx, ClaudeRecipe.jsx (structured recipe) */
+.preferences{
+    max-width: 700px;
+    width: 100%;
+    margin: 0 auto 20px;
+    color: #475467;
+    font-size: 0.875rem;
+}
+.preferences summary{
+    cursor: pointer;
+    font-weight: 500;
+}
+.preferences-grid{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 12px;
+}
+.preferences-grid label{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1 1 150px;
+}
+.preferences-grid input,
+.preferences-grid select{
+    padding: 8px 10px;
+    border-radius: 5px;
+    border: 1px solid #D1D5DB;
+    font-family: Inter, sans-serif;
+    font-size: 0.875rem;
+    background: white;
+}
+.recipe-status{
+    max-width: 700px;
+    margin: 20px auto 0;
+    text-align: center;
+    color: #475467;
+}
+.recipe-error{
+    max-width: 700px;
+    margin: 20px auto 0;
+    padding: 9px 13px;
+    border-radius: 5px;
+    background: #FEF3F2;
+    color: #B42318;
+    font-size: 0.875rem;
+}
+.recipe-saved{
+    max-width: 700px;
+    margin: 30px auto 0;
+    color: #067647;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+.recipe-saved a{
+    color: inherit;
+}
+.recipe-eyebrow{
+    margin: 0 0 4px;
+    font-size: 0.875rem;
+    color: #D17557;
+    font-weight: 500;
+}
+.recipe-section h2{
+    margin: 0 0 8px;
+}
+.recipe-section h3{
+    margin: 24px 0 8px;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #344054;
+}
+.recipe-description{
+    margin: 0 0 12px;
+}
+ul.recipe-meta{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+ul.recipe-meta > li{
+    margin: 0;
+    padding: 2px 12px;
+    border-radius: 999px;
+    background: #FEF3E8;
+    color: #344054;
+    font-size: 0.875rem;
+}
+
+/* RecipesPage.jsx, RecipeDetailPage.jsx */
+.recipes-page{
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+}
+.recipes-page h1{
+    font-size: 1.75rem;
+    font-weight: 500;
+}
+ul.recipe-list{
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.recipe-card{
+    padding: 14px 16px;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+}
+.recipe-card a{
+    color: #141718;
+    font-weight: 500;
+    font-size: 1.125rem;
+}
+.recipe-card p{
+    margin: 6px 0;
+    color: #475467;
+}
+.recipe-card-meta{
+    font-size: 0.8125rem;
+    color: #6B7280;
+}
+.delete-button{
+    margin-top: 30px;
+    font-family: Inter, sans-serif;
+    border-radius: 5px;
+    border: 1px solid #B42318;
+    background: white;
+    color: #B42318;
+    padding: 9px 16px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+.delete-button:disabled{
+    opacity: 0.6;
+    cursor: not-allowed;
+}

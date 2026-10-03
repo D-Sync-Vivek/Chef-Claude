@@ -3,6 +3,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const FALLBACK_MESSAGES = {
   400: "Please check your input and try again.",
   401: "Please log in to continue.",
+  404: "That was not found.",
   500: "Something went wrong on the server. Please try again later.",
 };
 
@@ -48,14 +49,33 @@ async function request(path, { method = "GET", body } = {}) {
   return data;
 }
 
-export async function fetchRecipe(ingredients) {
-  const data = await request("/api/recipe", { method: "POST", body: { ingredients } });
-
-  if (typeof data?.recipe !== "string") {
+function extractRecipe(data) {
+  if (!data?.recipe?.id || !Array.isArray(data.recipe.ingredients)) {
     throw new Error("The server returned an unexpected response.");
   }
+  return data.recipe;
+}
 
-  return data;
+// payload: { ingredients, servings?, difficulty?, maxCookingTime? }. The server decides who owns the recipe.
+export async function generateRecipe(payload) {
+  return extractRecipe(await request("/api/recipes/generate", { method: "POST", body: payload }));
+}
+
+export async function fetchRecipes(cursor) {
+  const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+  const data = await request(`/api/recipes${query}`);
+  if (!Array.isArray(data?.recipes)) {
+    throw new Error("The server returned an unexpected response.");
+  }
+  return { recipes: data.recipes, nextCursor: data.nextCursor ?? null };
+}
+
+export async function fetchRecipeById(id) {
+  return extractRecipe(await request(`/api/recipes/${encodeURIComponent(id)}`));
+}
+
+export async function deleteRecipe(id) {
+  await request(`/api/recipes/${encodeURIComponent(id)}`, { method: "DELETE" });
 }
 
 function extractUser(data) {
