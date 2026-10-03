@@ -6,6 +6,10 @@ if (!env.hfAccessToken) {
   console.warn("HF_ACCESS_TOKEN is not set. POST /api/recipe will fail until it is configured.");
 }
 
+if (env.jwtSecret.length < 32) {
+  console.warn("JWT_SECRET is not set or shorter than 32 characters. Auth endpoints will fail until it is configured.");
+}
+
 if (!env.databaseUrl) {
   console.warn("DATABASE_URL is not set. GET /api/health/db will report the database as not configured.");
 }

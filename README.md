@@ -37,7 +37,7 @@ The model call lives in `backend/services/recipe.service.js`. The model name is 
 
 ### Setup
 1. Install dependencies.
-2. Copy `backend/.env.example` to `backend/.env` and set `HF_ACCESS_TOKEN`, `HF_MODEL` and `DATABASE_URL` (never use a `VITE_` prefix for secrets).
+2. Copy `backend/.env.example` to `backend/.env` and set `HF_ACCESS_TOKEN`, `HF_MODEL`, `DATABASE_URL` and `JWT_SECRET` (never use a `VITE_` prefix for secrets).
 3. Copy `.env.example` to `.env.local` (frontend, public values only).
 4. Set up the database (see Database below), then start the backend: `cd backend && npm run dev`.
 5. Start the frontend: `npm run dev`.
@@ -63,6 +63,29 @@ The backend uses PostgreSQL through Prisma (schema: `backend/prisma/schema.prism
 5. Start the backend and check the connection: `curl localhost:3001/api/health/db`. It returns 200 when the database answers and a generic 503 otherwise; credentials are never included in responses.
 
 Local development order: install PostgreSQL → set `DATABASE_URL` → `npm install` → `npm run db:generate` → `npm run db:migrate` → `npm run dev` (backend) → `npm run dev` (frontend). The API still starts without `DATABASE_URL`; only `/api/health/db` reports it as not configured.
+
+### Authentication
+
+Users can register, log in, log out and load their profile. Passwords are hashed with bcrypt (cost 12) and never stored or returned in plaintext. Login issues a JWT (HS256, 7 days) in an **HTTP-only cookie** named `chef_token`; the browser never exposes it to JavaScript and the frontend never stores tokens or passwords in `localStorage`/`sessionStorage`.
+
+| Endpoint | Description |
+| --- | --- |
+| `POST /api/auth/register` | `{ name, email, password }` → creates the user, signs them in, returns `201 { user }`. Email is trimmed and lowercased; password is 8–72 bytes. Duplicate email → `409`. |
+| `POST /api/auth/login` | `{ email, password }` → `200 { user }` and sets the cookie. Wrong email or password → `401` with the same message for both. |
+| `POST /api/auth/logout` | Clears the cookie. Always `200`. |
+| `GET /api/auth/me` | Returns the current user, or `401` if the cookie is missing, invalid, expired or the user no longer exists. |
+
+Setup:
+1. Generate a secret and put it in `backend/.env` as `JWT_SECRET` (at least 32 characters; the server refuses to start in production without it):
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+   ```
+2. Open the frontend at the **same hostname** as `VITE_API_BASE_URL` (e.g. both `localhost`). Mixing `localhost` and `127.0.0.1` makes the cookie cross-site and it will not be sent.
+3. Cookie settings: `httpOnly` always; `secure` in production; `sameSite=lax` by default. If your frontend and API are deployed on **different sites**, set `AUTH_COOKIE_SAMESITE=none` (this forces `secure`, so HTTPS is required) and list the frontend in `CLIENT_ORIGIN`.
+
+To protect a backend route, add the `requireAuth` middleware (`backend/middleware/auth.middleware.js`); it sets `req.user`, and routes must use `req.user.id` rather than any id sent by the client. On the frontend, wrap private routes in the `ProtectedRoute` layout route (`components/ProtectedRoute.jsx`). The recipe generator at `/` is still public.
+
+Frontend routes: `/` (generator), `/login`, `/register`. Auth state lives in `src/auth/AuthProvider.jsx` (`useAuth()`), which asks `GET /api/auth/me` on load and tracks `loading`, `authenticated`, `unauthenticated` and `error`.
 
 ### NOTES
 - The model may introduce extra ingredients; this is intentional.
