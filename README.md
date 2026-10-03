@@ -48,17 +48,16 @@ export async function getRecipeFromMistral(ingredientsArr) {
 
 ### Requirements
 - Node.js environment
-- Hugging Face access token exposed as VITE_HF_ACCESS_TOKEN
-- Valid model availability (google/gemma-2-2b-it)
+- Hugging Face access token, set only in the backend environment (`HF_ACCESS_TOKEN`)
+- Valid model availability (mistralai/Mistral-7B-Instruct-v0.2)
 
 ### Setup
 1. Install dependencies.
-2. Create an environment variable:
-```ini
-VITE_HF_ACCESS_TOKEN=your_hf_token_here
-```
-3. Start the backend.
-4. Frontend sends ingredient arrays to the backend endpoint that wraps getRecipeFromMistral.
+2. Copy `backend/.env.example` to `backend/.env` and set `HF_ACCESS_TOKEN` (never use a `VITE_` prefix for secrets).
+3. Copy `.env.example` to `.env.local` (frontend, public values only).
+4. Start the backend: `cd backend && npm run dev`.
+5. Start the frontend: `npm run dev`.
+6. The frontend sends `POST /api/recipe` with `{ "ingredients": [...] }`; check the backend with `GET /api/health`.
 
 ### NOTES
 - The model may introduce extra ingredients; this is intentional.

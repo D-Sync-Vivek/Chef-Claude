@@ -32,7 +32,7 @@ export default function Main() {
       setRecipe(data.recipe);
     } catch (err) {
       console.error(err);
-      alert("Failed to generate recipe");
+      alert(err.message || "Failed to generate recipe");
     } finally {
       setIsLoading(false);
     }
