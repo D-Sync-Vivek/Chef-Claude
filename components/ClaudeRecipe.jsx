@@ -5,10 +5,10 @@ function formatIngredient({ quantity, unit, name }) {
 }
 
 // Renders a structured recipe. All values are shown as plain text (React escapes them).
-export default function ClaudeRecipe({ recipe }) {
+export default function ClaudeRecipe({ recipe, eyebrow = "Chef Claude Recommends:" }) {
   return (
     <section className="recipe-section suggested-recipe-container" aria-live="polite">
-      <p className="recipe-eyebrow">Chef Claude Recommends:</p>
+      <p className="recipe-eyebrow">{eyebrow}</p>
       <h2>{recipe.title}</h2>
       <p className="recipe-description">{recipe.description}</p>
 
@@ -32,6 +32,11 @@ export default function ClaudeRecipe({ recipe }) {
           <li key={index}>{step}</li>
         ))}
       </ol>
+
+      <p className="recipe-disclaimer">
+        AI-generated recipe. Check the ingredients against your allergies and dietary needs. This is not
+        medical or nutritional advice.
+      </p>
     </section>
   );
 }

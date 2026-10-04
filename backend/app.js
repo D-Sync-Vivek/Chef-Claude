@@ -23,7 +23,7 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.use(express.json({ limit: "10kb" }));
+app.use(express.json({ limit: "64kb" }));
 
 app.get("/api/health", (_req, res) =>
   sendSuccess(res, { message: "Chef Claude API is running" })

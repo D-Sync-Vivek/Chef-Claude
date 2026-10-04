@@ -64,3 +64,40 @@ export async function deleteRecipeForUser(userId, id) {
   const { count } = await getPrisma().recipe.deleteMany({ where: { id, userId } });
   if (count === 0) throw new ApiError(404, "Recipe not found");
 }
+
+// Overwrites the content of an existing recipe in one transaction. The id, owner, createdAt and
+// favorite mark are kept; ingredients and steps are rebuilt from the (validated) new content.
+export async function replaceRecipeForUser(userId, id, recipe) {
+  await getPrisma().$transaction(async (tx) => {
+    // The row lock taken by this update also serializes concurrent replaces of the same recipe.
+    const { count } = await tx.recipe.updateMany({
+      where: { id, userId },
+      data: {
+        title: recipe.title,
+        description: recipe.description,
+        prepTimeMinutes: recipe.prepTime,
+        cookTimeMinutes: recipe.cookTime,
+        servings: recipe.servings,
+        difficulty: recipe.difficulty.toUpperCase(),
+      },
+    });
+    if (count === 0) throw new ApiError(404, "Recipe not found");
+
+    await tx.recipeIngredient.deleteMany({ where: { recipeId: id } });
+    await tx.recipeInstruction.deleteMany({ where: { recipeId: id } });
+    await tx.recipeIngredient.createMany({
+      data: recipe.ingredients.map((ingredient, index) => ({
+        recipeId: id,
+        position: index + 1,
+        name: ingredient.name,
+        quantity: ingredient.quantity,
+        unit: ingredient.unit,
+      })),
+    });
+    await tx.recipeInstruction.createMany({
+      data: recipe.instructions.map((text, index) => ({ recipeId: id, stepNumber: index + 1, text })),
+    });
+  });
+
+  return getRecipeForUser(userId, id);
+}

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { aiRecipeSchema } from "./ai-recipe.schema.js";
 
 export const MAX_INGREDIENTS = 20;
 export const MAX_INGREDIENT_LENGTH = 50;
@@ -62,4 +63,22 @@ export const listRecipesQuerySchema = z.object({
     .optional()
     .transform((value) => value || undefined),
   difficulty: z.enum(DIFFICULTIES, { error: `difficulty must be one of: ${DIFFICULTIES.join(", ")}` }).optional(),
+});
+
+export const MIN_INSTRUCTION_LENGTH = 3;
+export const MAX_INSTRUCTION_LENGTH = 300;
+
+export const transformRequestSchema = z.object({
+  instruction: z
+    .string({ error: "instruction is required" })
+    .trim()
+    .min(MIN_INSTRUCTION_LENGTH, { error: `instruction must be at least ${MIN_INSTRUCTION_LENGTH} characters` })
+    .max(MAX_INSTRUCTION_LENGTH, { error: `instruction must be at most ${MAX_INSTRUCTION_LENGTH} characters` }),
+});
+
+// The recipe is checked and cleaned by the same schema used for AI output. The owner is never
+// part of the body: it always comes from the login session.
+export const saveTransformedRequestSchema = z.object({
+  mode: z.enum(["new", "replace"], { error: 'mode must be "new" or "replace"' }),
+  recipe: aiRecipeSchema,
 });

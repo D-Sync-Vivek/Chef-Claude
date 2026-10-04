@@ -29,6 +29,8 @@ Flow: `route → requireAuth → validate → controller → recipe-ai.service (
 | `GET /api/recipes/favorites` | Your favorite recipes, most recently favorited first. Same `limit`, `cursor`, `q` and `difficulty` options. |
 | `POST /api/recipes/:id/favorite` | Marks your recipe as a favorite. `201` when added, `200` if it already was (no duplicates, safe to repeat). |
 | `DELETE /api/recipes/:id/favorite` | Removes the favorite. `200` even if it was not a favorite. |
+| `POST /api/recipes/:id/transform` | Body: `{ instruction: string(3-300) }`. Asks the AI to change one of your recipes (e.g. "Make this recipe vegetarian"). Returns `200 { recipe, changed }` - a **preview only**, nothing is saved. `changed` is `false` if the AI returned the recipe unchanged. |
+| `POST /api/recipes/:id/transform/save` | Body: `{ mode: "new"\|"replace", recipe }` where `recipe` is the previewed recipe. `new` creates a new recipe (`201`); `replace` overwrites recipe `:id` (`200`, keeps its id, creation date and favorite mark). |
 | `GET /api/recipes/:id` | One full recipe. |
 | `DELETE /api/recipes/:id` | Deletes your recipe (ingredients and steps cascade). |
 
@@ -41,6 +43,17 @@ Recipe shape: `{ id, title, description, prepTime, cookTime, servings, difficult
 Favorites live in their own `Favorite` table (`userId`, `recipeId`, `createdAt`). The primary key is `(userId, recipeId)`, so the database itself rejects duplicates, and both foreign keys cascade (deleting a recipe or a user removes their favorites). Recipes are private, so a user can only favorite recipes they own; favoriting or un-favoriting someone else's recipe returns `404` and changes nothing. The check is in `backend/services/favorite.service.js`, not in the table, so a future sharing feature will not need a schema change.
 
 The old unauthenticated Markdown endpoint `POST /api/recipe` has been removed.
+
+### Customizing a recipe with AI
+
+Open a saved recipe and use "Customize with AI": pick a suggestion (vegetarian, vegan, more protein, shorter cooking time, double servings, fewer ingredients, change cuisine) or type your own request, then press "Transform recipe". The AI's version is shown as a **preview**; the saved recipe is never changed automatically. You then choose **Save as new recipe**, **Replace this recipe** (asks for confirmation) or **Discard**.
+
+- Flow: `route → requireAuth → validate → load the recipe (must be yours) → transform service → parse → Zod → preview`. It uses the same "ask, validate, retry once with feedback" loop as generation (`requestValidRecipe` in `backend/services/recipe-ai.service.js`). The transform prompt is in `backend/services/recipe-transform.service.js`. If the output is invalid, nothing is returned or saved.
+- The instruction is trimmed, 3-300 characters, and is sent to the model as quoted data, not as part of the system prompt. The recipe owner always comes from the login session; the body can't set it.
+- Saving re-validates the recipe with the same schema as AI output. The server does not remember previews, so a client could submit its own recipe text to the save endpoint; that only affects that user's own private recipes. Replace runs in one database transaction.
+- Request bodies may be up to 64 KB (a full recipe can exceed the old 10 KB limit).
+
+**AI safety.** The app does not present AI recipes as medical or nutritional advice. Prompts forbid calorie counts, nutrition facts, health or medical claims and allergy guarantees, and `backend/utils/health-claims.js` rejects (and retries) outputs containing clear examples of them, for both generation and transformation. This is a best-effort word filter, not a guarantee: results are **not** verified to be vegan, allergen-free, lower in calories, etc., and the UI says so. Claims already present in a saved recipe do not block transforming it. Anyone with allergies or dietary needs must check the ingredients themselves.
 
 ### Requirements
 - Node.js environment

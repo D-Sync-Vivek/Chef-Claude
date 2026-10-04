@@ -5,6 +5,7 @@ import {
   getRecipe,
   listRecipes,
 } from "../controllers/recipe.controller.js";
+import { saveTransformed, transform } from "../controllers/transform.controller.js";
 import {
   favoriteRecipe,
   listFavorites,
@@ -16,6 +17,8 @@ import {
   generateRecipeRequestSchema,
   listRecipesQuerySchema,
   recipeIdParamsSchema,
+  saveTransformedRequestSchema,
+  transformRequestSchema,
 } from "../schemas/recipe.schema.js";
 
 const router = Router();
@@ -27,6 +30,8 @@ router.post("/generate", validateBody(generateRecipeRequestSchema), generateReci
 router.get("/favorites", validateQuery(listRecipesQuerySchema), listFavorites);
 router.get("/", validateQuery(listRecipesQuerySchema), listRecipes);
 router.get("/:id", validateParams(recipeIdParamsSchema), getRecipe);
+router.post("/:id/transform", validateParams(recipeIdParamsSchema), validateBody(transformRequestSchema), transform);
+router.post("/:id/transform/save", validateParams(recipeIdParamsSchema), validateBody(saveTransformedRequestSchema), saveTransformed);
 router.post("/:id/favorite", validateParams(recipeIdParamsSchema), favoriteRecipe);
 router.delete("/:id/favorite", validateParams(recipeIdParamsSchema), unfavoriteRecipe);
 router.delete("/:id", validateParams(recipeIdParamsSchema), deleteRecipe);

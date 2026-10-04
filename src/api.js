@@ -98,6 +98,28 @@ export async function fetchRecipeById(id) {
   return extractRecipe(await request(`/api/recipes/${encodeURIComponent(id)}`));
 }
 
+// Asks the AI to change a saved recipe. Returns { recipe, changed } - a preview, nothing is saved.
+export async function transformRecipe(id, instruction) {
+  const data = await request(`/api/recipes/${encodeURIComponent(id)}/transform`, {
+    method: "POST",
+    body: { instruction },
+  });
+  if (!Array.isArray(data?.recipe?.ingredients)) {
+    throw new Error("The server returned an unexpected response.");
+  }
+  return { recipe: data.recipe, changed: data.changed !== false };
+}
+
+// mode: "new" saves the previewed recipe as a new recipe, "replace" overwrites the source recipe.
+export async function saveTransformedRecipe(id, mode, recipe) {
+  return extractRecipe(
+    await request(`/api/recipes/${encodeURIComponent(id)}/transform/save`, {
+      method: "POST",
+      body: { mode, recipe },
+    })
+  );
+}
+
 export async function deleteRecipe(id) {
   await request(`/api/recipes/${encodeURIComponent(id)}`, { method: "DELETE" });
 }

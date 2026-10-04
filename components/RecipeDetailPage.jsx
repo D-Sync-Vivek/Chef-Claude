@@ -2,12 +2,19 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import ClaudeRecipe from "./ClaudeRecipe";
 import FavoriteButton from "./FavoriteButton";
+import RecipeTransformPanel from "./RecipeTransformPanel";
 import { deleteRecipe, favoriteRecipe, fetchRecipeById, unfavoriteRecipe } from "../src/api";
 import { useAuth } from "../src/auth/useAuth";
 import { formatDate } from "../src/recipeFormat";
 
+// Keyed by id so that moving from one recipe to another (e.g. to a newly saved copy)
+// starts with a clean page instead of briefly showing the previous recipe.
 export default function RecipeDetailPage() {
   const { id } = useParams();
+  return <RecipeDetail key={id} id={id} />;
+}
+
+function RecipeDetail({ id }) {
   const { retry } = useAuth();
   const navigate = useNavigate();
   const [recipe, setRecipe] = useState(null);
@@ -90,6 +97,7 @@ export default function RecipeDetailPage() {
             </span>
           </div>
           <ClaudeRecipe recipe={recipe} />
+          <RecipeTransformPanel recipe={recipe} onReplaced={setRecipe} />
           {error && <p className="recipe-error" role="alert">{error}</p>}
           <button type="button" className="delete-button" onClick={handleDelete} disabled={isDeleting}>
             {isDeleting ? "Deleting…" : "Delete recipe"}
