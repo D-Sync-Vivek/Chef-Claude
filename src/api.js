@@ -61,13 +61,37 @@ export async function generateRecipe(payload) {
   return extractRecipe(await request("/api/recipes/generate", { method: "POST", body: payload }));
 }
 
-export async function fetchRecipes(cursor) {
-  const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
-  const data = await request(`/api/recipes${query}`);
+// params: { cursor?, q?, difficulty? } - empty values are left out of the URL.
+function listQuery({ cursor, q, difficulty } = {}) {
+  const params = new URLSearchParams();
+  if (cursor) params.set("cursor", cursor);
+  if (q) params.set("q", q);
+  if (difficulty) params.set("difficulty", difficulty);
+  const query = params.toString();
+  return query ? `?${query}` : "";
+}
+
+function extractList(data) {
   if (!Array.isArray(data?.recipes)) {
     throw new Error("The server returned an unexpected response.");
   }
   return { recipes: data.recipes, nextCursor: data.nextCursor ?? null };
+}
+
+export async function fetchRecipes(params) {
+  return extractList(await request(`/api/recipes${listQuery(params)}`));
+}
+
+export async function fetchFavorites(params) {
+  return extractList(await request(`/api/recipes/favorites${listQuery(params)}`));
+}
+
+export async function favoriteRecipe(id) {
+  await request(`/api/recipes/${encodeURIComponent(id)}/favorite`, { method: "POST" });
+}
+
+export async function unfavoriteRecipe(id) {
+  await request(`/api/recipes/${encodeURIComponent(id)}/favorite`, { method: "DELETE" });
 }
 
 export async function fetchRecipeById(id) {

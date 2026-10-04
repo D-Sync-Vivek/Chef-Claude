@@ -54,4 +54,12 @@ export const listRecipesQuerySchema = z.object({
     .max(50, { error: "limit must be at most 50" })
     .default(20),
   cursor: z.uuid({ error: "cursor is not valid" }).optional(),
+  // Optional filters: text matches the title or an ingredient name; difficulty matches exactly.
+  q: z
+    .string()
+    .trim()
+    .max(100, { error: "Search text must be at most 100 characters" })
+    .optional()
+    .transform((value) => value || undefined),
+  difficulty: z.enum(DIFFICULTIES, { error: `difficulty must be one of: ${DIFFICULTIES.join(", ")}` }).optional(),
 });

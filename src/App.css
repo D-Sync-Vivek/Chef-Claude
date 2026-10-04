@@ -418,3 +418,85 @@ ul.recipe-list{
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+/* Recipe library (RecipesPage.jsx, RecipeCard.jsx, FavoriteButton.jsx) */
+.library-filters{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0;
+}
+.library-filters input[type="search"]{
+    flex: 1 1 220px;
+    padding: 9px 13px;
+    border-radius: 5px;
+    border: 1px solid #D1D5DB;
+    box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.5);
+    font-family: Inter, sans-serif;
+    font-size: 1rem;
+}
+.library-filters select{
+    padding: 9px 10px;
+    border-radius: 5px;
+    border: 1px solid #D1D5DB;
+    background: white;
+    font-family: Inter, sans-serif;
+    font-size: 0.875rem;
+}
+.link-button{
+    background: none;
+    border: none;
+    padding: 0;
+    color: #D17557;
+    font-family: Inter, sans-serif;
+    font-size: 0.875rem;
+    cursor: pointer;
+    text-decoration: underline;
+}
+.recipe-card-top{
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+.recipe-card-description{
+    margin: 6px 0 10px;
+    color: #475467;
+}
+.recipe-card ul.recipe-meta{
+    margin-bottom: 10px;
+}
+.favorite-button{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid #D1D5DB;
+    background: white;
+    color: #6B7280;
+    font-family: Inter, sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.2;
+    cursor: pointer;
+}
+.favorite-button.is-favorite{
+    border-color: #D17557;
+    color: #D17557;
+}
+.favorite-button:disabled{
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.recipe-detail-actions{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 10px;
+}
+.recipe-error p{
+    margin: 0 0 10px;
+}

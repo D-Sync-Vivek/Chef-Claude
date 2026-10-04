@@ -1,41 +1,9 @@
 import { getPrisma } from "../db/prisma.js";
 import { ApiError } from "../utils/api-response.js";
+import { buildRecipeFilter, fullInclude, summaryInclude, toRecipeDto, toRecipeSummaryDto } from "../utils/recipe-shape.js";
 
 // Every function takes the owner's userId from the authenticated session and puts it in
 // the query's WHERE clause, so one user can never read or delete another user's recipe.
-
-const fullInclude = {
-  ingredients: { orderBy: { position: "asc" } },
-  instructions: { orderBy: { stepNumber: "asc" } },
-};
-
-function toRecipeDto(recipe) {
-  return {
-    id: recipe.id,
-    title: recipe.title,
-    description: recipe.description,
-    prepTime: recipe.prepTimeMinutes,
-    cookTime: recipe.cookTimeMinutes,
-    servings: recipe.servings,
-    difficulty: recipe.difficulty.toLowerCase(),
-    ingredients: recipe.ingredients.map(({ name, quantity, unit }) => ({ name, quantity, unit })),
-    instructions: recipe.instructions.map((step) => step.text),
-    createdAt: recipe.createdAt,
-  };
-}
-
-function toRecipeSummaryDto(recipe) {
-  return {
-    id: recipe.id,
-    title: recipe.title,
-    description: recipe.description,
-    prepTime: recipe.prepTimeMinutes,
-    cookTime: recipe.cookTimeMinutes,
-    servings: recipe.servings,
-    difficulty: recipe.difficulty.toLowerCase(),
-    createdAt: recipe.createdAt,
-  };
-}
 
 // `recipe` must already be validated (see schemas/ai-recipe.schema.js).
 export async function createRecipeForUser(userId, recipe) {
@@ -61,15 +29,16 @@ export async function createRecipeForUser(userId, recipe) {
         create: recipe.instructions.map((text, index) => ({ stepNumber: index + 1, text })),
       },
     },
-    include: fullInclude,
+    include: fullInclude(userId),
   });
   return toRecipeDto(created);
 }
 
-export async function listRecipesForUser(userId, { limit, cursor }) {
+export async function listRecipesForUser(userId, { limit, cursor, q, difficulty }) {
   // Fetch one extra row to learn whether another page exists.
   const rows = await getPrisma().recipe.findMany({
-    where: { userId },
+    where: { userId, ...buildRecipeFilter({ q, difficulty }) },
+    include: summaryInclude(userId),
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     take: limit + 1,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
@@ -85,7 +54,7 @@ export async function listRecipesForUser(userId, { limit, cursor }) {
 
 // Someone else's recipe and a missing recipe both give 404, so ids cannot be probed.
 export async function getRecipeForUser(userId, id) {
-  const recipe = await getPrisma().recipe.findFirst({ where: { id, userId }, include: fullInclude });
+  const recipe = await getPrisma().recipe.findFirst({ where: { id, userId }, include: fullInclude(userId) });
   if (!recipe) throw new ApiError(404, "Recipe not found");
   return toRecipeDto(recipe);
 }

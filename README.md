@@ -25,13 +25,20 @@ Flow: `route → requireAuth → validate → controller → recipe-ai.service (
 | Endpoint | Description |
 | --- | --- |
 | `POST /api/recipes/generate` | Body: `{ ingredients: string[1-20], servings?: 1-20, difficulty?: "easy"\|"medium"\|"hard", maxCookingTime?: 1-600 }`. Returns `201 { recipe }` (saved). `400` invalid request, `401` not logged in, `502` AI unavailable or invalid output. |
-| `GET /api/recipes?limit=20&cursor=<id>` | Your recipes, newest first (summaries). Returns `{ recipes, nextCursor }`; `limit` is 1-50. |
+| `GET /api/recipes?limit=20&cursor=<id>&q=<text>&difficulty=<d>` | Your recipes, newest first (summaries). Returns `{ recipes, nextCursor }`; `limit` is 1-50. Optional filters: `q` matches the title or an ingredient name (case-insensitive, literal text), `difficulty` is `easy`, `medium` or `hard`. |
+| `GET /api/recipes/favorites` | Your favorite recipes, most recently favorited first. Same `limit`, `cursor`, `q` and `difficulty` options. |
+| `POST /api/recipes/:id/favorite` | Marks your recipe as a favorite. `201` when added, `200` if it already was (no duplicates, safe to repeat). |
+| `DELETE /api/recipes/:id/favorite` | Removes the favorite. `200` even if it was not a favorite. |
 | `GET /api/recipes/:id` | One full recipe. |
 | `DELETE /api/recipes/:id` | Deletes your recipe (ingredients and steps cascade). |
 
 Ownership comes only from the login cookie; any `userId` in a request body is ignored. A recipe that belongs to someone else returns **404**, the same as a missing one, so ids cannot be probed.
 
-Recipe shape: `{ id, title, description, prepTime, cookTime, servings, difficulty, ingredients: [{ name, quantity, unit }], instructions: [string], createdAt }`.
+Recipe shape: `{ id, title, description, prepTime, cookTime, servings, difficulty, isFavorite, ingredients: [{ name, quantity, unit }], instructions: [string], createdAt }`. List endpoints return the same fields without `ingredients` and `instructions`.
+
+### Favorites
+
+Favorites live in their own `Favorite` table (`userId`, `recipeId`, `createdAt`). The primary key is `(userId, recipeId)`, so the database itself rejects duplicates, and both foreign keys cascade (deleting a recipe or a user removes their favorites). Recipes are private, so a user can only favorite recipes they own; favoriting or un-favoriting someone else's recipe returns `404` and changes nothing. The check is in `backend/services/favorite.service.js`, not in the table, so a future sharing feature will not need a schema change.
 
 The old unauthenticated Markdown endpoint `POST /api/recipe` has been removed.
 
@@ -51,7 +58,7 @@ The old unauthenticated Markdown endpoint `POST /api/recipe` has been removed.
 
 ### Database
 
-The backend uses PostgreSQL through Prisma (schema: `backend/prisma/schema.prisma`). Tables so far: `User`, `Recipe`, `RecipeIngredient`, `RecipeInstruction`. No application code reads or writes them yet.
+The backend uses PostgreSQL through Prisma (schema: `backend/prisma/schema.prisma`). Tables: `User`, `Recipe`, `RecipeIngredient`, `RecipeInstruction` and `Favorite`. Run `npm run db:migrate` after pulling changes to apply new migrations (the latest adds `Favorite`).
 
 1. Install PostgreSQL 14+ and create a database and user, for example:
    ```sql
@@ -91,7 +98,7 @@ Setup:
 
 To protect a backend route, add the `requireAuth` middleware (`backend/middleware/auth.middleware.js`); it sets `req.user`, and routes must use `req.user.id` rather than any id sent by the client. On the frontend, wrap private routes in the `ProtectedRoute` layout route (`components/ProtectedRoute.jsx`). The recipe generator and recipe pages are all behind login.
 
-Frontend routes: `/` (generator), `/recipes` (saved recipes), `/recipes/:id` (one recipe, with delete), `/login`, `/register`. The first three are wrapped in `ProtectedRoute`. Auth state lives in `src/auth/AuthProvider.jsx` (`useAuth()`), which asks `GET /api/auth/me` on load and tracks `loading`, `authenticated`, `unauthenticated` and `error`.
+Frontend routes: `/` (generator), `/recipes` (library with search and difficulty filter), `/favorites` (the same dashboard limited to favorites), `/recipes/:id` (details, favorite and delete), `/login`, `/register`. All except the last two are wrapped in `ProtectedRoute`. Auth state lives in `src/auth/AuthProvider.jsx` (`useAuth()`), which asks `GET /api/auth/me` on load and tracks `loading`, `authenticated`, `unauthenticated` and `error`.
 
 ### NOTES
 - The model may introduce extra pantry ingredients; this is intentional.

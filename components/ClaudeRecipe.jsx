@@ -1,4 +1,4 @@
-const DIFFICULTY_LABELS = { easy: "Easy", medium: "Medium", hard: "Hard" };
+import { DIFFICULTY_LABELS } from "../src/recipeFormat";
 
 function formatIngredient({ quantity, unit, name }) {
   return [quantity, unit, name].filter(Boolean).join(" ");

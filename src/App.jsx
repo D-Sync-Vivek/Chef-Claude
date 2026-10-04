@@ -16,7 +16,9 @@ function App() {
       <Routes>
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Main />} />
-          <Route path="/recipes" element={<RecipesPage />} />
+          {/* key forces a fresh page (filters, list) when switching between the two views */}
+          <Route path="/recipes" element={<RecipesPage key="all" />} />
+          <Route path="/favorites" element={<RecipesPage key="favorites" favoritesOnly />} />
           <Route path="/recipes/:id" element={<RecipeDetailPage />} />
         </Route>
         <Route element={<PublicOnlyRoute />}>

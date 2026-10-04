@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import ClaudeRecipe from "./ClaudeRecipe";
-import { deleteRecipe, fetchRecipeById } from "../src/api";
+import FavoriteButton from "./FavoriteButton";
+import { deleteRecipe, favoriteRecipe, fetchRecipeById, unfavoriteRecipe } from "../src/api";
 import { useAuth } from "../src/auth/useAuth";
+import { formatDate } from "../src/recipeFormat";
 
 export default function RecipeDetailPage() {
   const { id } = useParams();
@@ -12,6 +14,7 @@ export default function RecipeDetailPage() {
   const [status, setStatus] = useState("loading"); // loading | ready | notFound | error
   const [error, setError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
 
   useEffect(() => {
     let ignore = false;
@@ -33,6 +36,22 @@ export default function RecipeDetailPage() {
       ignore = true;
     };
   }, [id, retry]);
+
+  async function handleToggleFavorite() {
+    if (isTogglingFavorite) return;
+    setIsTogglingFavorite(true);
+    setError("");
+    try {
+      if (recipe.isFavorite) await unfavoriteRecipe(id);
+      else await favoriteRecipe(id);
+      setRecipe((current) => ({ ...current, isFavorite: !current.isFavorite }));
+    } catch (err) {
+      if (err.status === 401) return retry();
+      setError(err.message);
+    } finally {
+      setIsTogglingFavorite(false);
+    }
+  }
 
   async function handleDelete() {
     if (isDeleting || !window.confirm("Delete this recipe? This cannot be undone.")) return;
@@ -58,6 +77,18 @@ export default function RecipeDetailPage() {
 
       {status === "ready" && (
         <>
+          <div className="recipe-detail-actions">
+            <FavoriteButton
+              isFavorite={recipe.isFavorite}
+              onToggle={handleToggleFavorite}
+              disabled={isTogglingFavorite}
+              recipeTitle={recipe.title}
+              showText
+            />
+            <span className="recipe-card-meta">
+              Saved <time dateTime={recipe.createdAt}>{formatDate(recipe.createdAt)}</time>
+            </span>
+          </div>
           <ClaudeRecipe recipe={recipe} />
           {error && <p className="recipe-error" role="alert">{error}</p>}
           <button type="button" className="delete-button" onClick={handleDelete} disabled={isDeleting}>

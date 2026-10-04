@@ -20,7 +20,8 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  recipes Recipe[]
+  recipes   Recipe[]
+  favorites Favorite[]
 }
 
 // Every recipe belongs to exactly one user. No rows can exist until
@@ -40,6 +41,7 @@ model Recipe {
   user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   ingredients  RecipeIngredient[]
   instructions RecipeInstruction[]
+  favorites    Favorite[]
 
   @@index([userId, createdAt])
 }
@@ -66,4 +68,19 @@ model RecipeInstruction {
   recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
   @@unique([recipeId, stepNumber])
+}
+
+// A user's "favorite" mark on a recipe. The composite primary key makes duplicates impossible.
+// Only the recipe's owner can favorite it (enforced in favorite.service.js, since recipes are private).
+model Favorite {
+  userId    String
+  recipeId  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, recipeId])
+  @@index([userId, createdAt])
+  @@index([recipeId])
 }

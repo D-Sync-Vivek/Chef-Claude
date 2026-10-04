@@ -24,6 +24,7 @@ export default function Header() {
         {status === "authenticated" && (
           <>
             <Link to="/recipes">My recipes</Link>
+            <Link to="/favorites">Favorites</Link>
             <span className="header-user">Hi, {user.name}</span>
             <button type="button" className="header-link-button" onClick={handleLogout}>
               Log out
