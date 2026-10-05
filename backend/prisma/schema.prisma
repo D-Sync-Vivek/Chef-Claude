@@ -20,8 +20,10 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  recipes   Recipe[]
-  favorites Favorite[]
+  recipes       Recipe[]
+  favorites     Favorite[]
+  mealPlans     MealPlan[]
+  shoppingLists ShoppingList[]
 }
 
 // Every recipe belongs to exactly one user. No rows can exist until
@@ -42,6 +44,7 @@ model Recipe {
   ingredients  RecipeIngredient[]
   instructions RecipeInstruction[]
   favorites    Favorite[]
+  planEntries  MealPlanEntry[]
 
   @@index([userId, createdAt])
 }
@@ -83,4 +86,67 @@ model Favorite {
   @@id([userId, recipeId])
   @@index([userId, createdAt])
   @@index([recipeId])
+}
+
+// A named run of days (1-31, both ends included) in which the user plans recipes.
+model MealPlan {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries       MealPlanEntry[]
+  shoppingLists ShoppingList[]
+
+  @@index([userId, startDate])
+}
+
+// "Cook this recipe on this day". Deleting the plan or the recipe removes the entry.
+model MealPlanEntry {
+  id         String   @id @default(uuid())
+  mealPlanId String
+  recipeId   String
+  date       DateTime @db.Date
+  createdAt  DateTime @default(now())
+
+  mealPlan MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  recipe   Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([mealPlanId, date, recipeId])
+  @@index([recipeId])
+}
+
+// A saved snapshot of what to buy. It keeps working if the plan or recipes are later deleted.
+model ShoppingList {
+  id         String   @id @default(uuid())
+  userId     String
+  mealPlanId String?
+  name       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mealPlan MealPlan?          @relation(fields: [mealPlanId], references: [id], onDelete: SetNull)
+  items    ShoppingListItem[]
+
+  @@index([userId, createdAt])
+  @@index([mealPlanId])
+}
+
+model ShoppingListItem {
+  id             String  @id @default(uuid())
+  shoppingListId String
+  position       Int
+  name           String
+  // How much is needed, as display text: "5", "1 L", "2 + 100 g", "to taste".
+  quantity       String
+  checked        Boolean @default(false)
+
+  shoppingList ShoppingList @relation(fields: [shoppingListId], references: [id], onDelete: Cascade)
+
+  @@unique([shoppingListId, position])
 }

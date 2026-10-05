@@ -55,6 +55,42 @@ Open a saved recipe and use "Customize with AI": pick a suggestion (vegetarian, 
 
 **AI safety.** The app does not present AI recipes as medical or nutritional advice. Prompts forbid calorie counts, nutrition facts, health or medical claims and allergy guarantees, and `backend/utils/health-claims.js` rejects (and retries) outputs containing clear examples of them, for both generation and transformation. This is a best-effort word filter, not a guarantee: results are **not** verified to be vegan, allergen-free, lower in calories, etc., and the UI says so. Claims already present in a saved recipe do not block transforming it. Anyone with allergies or dietary needs must check the ingredients themselves.
 
+### Meal planner and shopping lists
+
+**Meal plans.** A meal plan is a named run of 1-31 days. You assign saved recipes to its days, move or remove them, rename the plan, or delete it. In the app: "Meal planner" in the main navigation.
+
+| Endpoint | Description |
+| --- | --- |
+| `GET /api/meal-plans?limit=20` | Your plans, newest start date first, with `entryCount`. |
+| `POST /api/meal-plans` | `{ name, startDate: "YYYY-MM-DD", endDate? }`. `endDate` defaults to start + 6 days. Max 31 days. `201`. |
+| `GET /api/meal-plans/:id` | The plan with its `entries` (`{ id, date, recipe }`) ordered by date. |
+| `PATCH /api/meal-plans/:id` | Change `name`, `startDate` and/or `endDate`. `409` if planned recipes would fall outside the new dates (nothing is dropped silently). |
+| `DELETE /api/meal-plans/:id` | Deletes the plan and its entries. Shopping lists made from it are kept. |
+| `POST /api/meal-plans/:id/entries` | `{ recipeId, date }`: plan one of **your** recipes on a day inside the plan. `409` if that recipe is already planned that day, or the plan already has 100 recipes. |
+| `PATCH /api/meal-plans/:id/entries/:entryId` | Move to another `date` and/or swap the `recipeId`. |
+| `DELETE /api/meal-plans/:id/entries/:entryId` | Remove one planned recipe. |
+
+Dates are calendar dates (no time of day, no time zones). Deleting a recipe also removes it from any plan.
+
+**Shopping lists.** From a meal plan you can create a shopping list for all planned recipes, or only the ones you tick. The list is saved as a snapshot: it does not change if recipes or plans change later, and it survives deleting the plan.
+
+| Endpoint | Description |
+| --- | --- |
+| `POST /api/shopping-lists` | `{ mealPlanId, entryIds?, name? }`. Builds the list from the plan's recipes (all, or just `entryIds`), merges ingredients and saves it. `201`. `400` if there is nothing to shop for. |
+| `GET /api/shopping-lists?limit=20` | Your lists, newest first, with `itemCount` and `checkedCount`. |
+| `GET /api/shopping-lists/:id` | One list with its items (`{ id, name, quantity, checked }`). |
+| `PATCH /api/shopping-lists/:id/items/:itemId` | `{ checked: true\|false }`: tick items off while shopping. |
+| `DELETE /api/shopping-lists/:id` | Deletes the list. |
+
+How ingredients are merged (`backend/utils/ingredient-aggregation.js`):
+- Same ingredient = same name ignoring case, singular/plural, and words like "chopped" or "large" ("Tomatoes" + "tomato" = one line). A recipe planned on two days is counted twice.
+- Counts and counted units are added ("2 + 3 = 5", "2 + 3 cloves = 5 cloves").
+- Weights and volumes are added, converting if units differ ("500 ml + 500 ml = 1 L", "200 g + 0.5 kg = 700 g"). If only one unit is used it is kept as written ("3 cups").
+- Amounts that cannot safely be added are shown side by side, never guessed: "2 + 100 g", "1 tsp + to taste". Ranges ("2-3") use the larger number.
+- The displayed name is a spelling that appears in the recipes. Quantities in recipes are free text, so unusual wording ends up listed as written.
+
+Everything is scoped to the logged-in user; another user's plans, entries and lists return `404`, the same as missing ones. Run `npm run db:migrate` to create the new tables (`MealPlan`, `MealPlanEntry`, `ShoppingList`, `ShoppingListItem`).
+
 ### Requirements
 - Node.js environment
 - Hugging Face access token, set only in the backend environment (`HF_ACCESS_TOKEN`)
@@ -71,7 +107,7 @@ Open a saved recipe and use "Customize with AI": pick a suggestion (vegetarian, 
 
 ### Database
 
-The backend uses PostgreSQL through Prisma (schema: `backend/prisma/schema.prisma`). Tables: `User`, `Recipe`, `RecipeIngredient`, `RecipeInstruction` and `Favorite`. Run `npm run db:migrate` after pulling changes to apply new migrations (the latest adds `Favorite`).
+The backend uses PostgreSQL through Prisma (schema: `backend/prisma/schema.prisma`). Tables: `User`, `Recipe`, `RecipeIngredient`, `RecipeInstruction`, `Favorite`, `MealPlan`, `MealPlanEntry`, `ShoppingList` and `ShoppingListItem`. Run `npm run db:migrate` after pulling changes to apply new migrations (the latest adds the meal planner and shopping list tables).
 
 1. Install PostgreSQL 14+ and create a database and user, for example:
    ```sql
@@ -111,7 +147,7 @@ Setup:
 
 To protect a backend route, add the `requireAuth` middleware (`backend/middleware/auth.middleware.js`); it sets `req.user`, and routes must use `req.user.id` rather than any id sent by the client. On the frontend, wrap private routes in the `ProtectedRoute` layout route (`components/ProtectedRoute.jsx`). The recipe generator and recipe pages are all behind login.
 
-Frontend routes: `/` (generator), `/recipes` (library with search and difficulty filter), `/favorites` (the same dashboard limited to favorites), `/recipes/:id` (details, favorite and delete), `/login`, `/register`. All except the last two are wrapped in `ProtectedRoute`. Auth state lives in `src/auth/AuthProvider.jsx` (`useAuth()`), which asks `GET /api/auth/me` on load and tracks `loading`, `authenticated`, `unauthenticated` and `error`.
+Frontend routes: `/` (generator), `/recipes` (library with search and difficulty filter), `/favorites` (the same dashboard limited to favorites), `/recipes/:id` (details, favorite and delete), `/meal-plans`, `/meal-plans/:id` (week view), `/shopping-lists`, `/shopping-lists/:id`, `/login`, `/register`. All except the last two are wrapped in `ProtectedRoute`. Auth state lives in `src/auth/AuthProvider.jsx` (`useAuth()`), which asks `GET /api/auth/me` on load and tracks `loading`, `authenticated`, `unauthenticated` and `error`.
 
 ### NOTES
 - The model may introduce extra pantry ingredients; this is intentional.

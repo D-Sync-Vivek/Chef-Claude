@@ -4,7 +4,9 @@ import cookieParser from "cookie-parser";
 import { env } from "./config/env.js";
 import { databaseHealth } from "./controllers/health.controller.js";
 import authRoutes from "./routes/auth.routes.js";
+import mealPlanRoutes from "./routes/meal-plan.routes.js";
 import recipeRoutes from "./routes/recipe.routes.js";
+import shoppingListRoutes from "./routes/shopping-list.routes.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.middleware.js";
 import { sendSuccess } from "./utils/api-response.js";
 
@@ -31,6 +33,8 @@ app.get("/api/health", (_req, res) =>
 app.get("/api/health/db", databaseHealth);
 app.use("/api/auth", authRoutes);
 app.use("/api/recipes", recipeRoutes);
+app.use("/api/meal-plans", mealPlanRoutes);
+app.use("/api/shopping-lists", shoppingListRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

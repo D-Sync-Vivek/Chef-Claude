@@ -604,3 +604,240 @@ ul.recipe-list{
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+/* Main navigation (Header.jsx) */
+.main-nav{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 22px;
+    padding: 10px 15px;
+    border-bottom: 1px solid #E5E7EB;
+    background: white;
+}
+.main-nav a{
+    padding: 4px 2px;
+    color: #475467;
+    text-decoration: none;
+    font-size: 0.9375rem;
+    border-bottom: 2px solid transparent;
+}
+.main-nav a:hover{
+    color: #D17557;
+}
+.main-nav a.active{
+    color: #D17557;
+    border-bottom-color: #D17557;
+}
+
+/* Meal planner + shopping lists */
+.visually-hidden{
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+.planner-page{
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+}
+.planner-page h1{
+    font-size: 1.75rem;
+    font-weight: 500;
+}
+.planner-page h2{
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #344054;
+}
+.plan-form{
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+}
+.plan-form h2{
+    margin: 0 0 12px;
+}
+.plan-form-fields{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+.plan-form-fields label{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1 1 160px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #344054;
+}
+.plan-form-fields input,
+.plan-picker-controls input,
+.plan-picker-controls select,
+.plan-rename input,
+.plan-entry-actions select{
+    padding: 8px 10px;
+    border-radius: 5px;
+    border: 1px solid #D1D5DB;
+    background: white;
+    font-family: Inter, sans-serif;
+    font-size: 0.875rem;
+}
+ul.plan-list{
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+}
+.plan-title{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 14px;
+}
+.plan-title h1{
+    margin: 0.4em 0 0;
+}
+.plan-rename{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+.plan-picker{
+    margin: 20px 0 28px;
+    padding: 14px 18px;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+}
+.plan-picker h2{
+    margin: 0 0 10px;
+}
+.plan-picker-controls{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+.plan-picker-controls label{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1 1 200px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #344054;
+}
+ul.plan-picker-results{
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 0;
+    max-height: 260px;
+    overflow-y: auto;
+}
+.plan-picker-results li{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid #F2F4F7;
+}
+ol.plan-days{
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+}
+.plan-day{
+    padding: 12px 14px;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+}
+.plan-day h3{
+    margin: 0 0 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #344054;
+}
+.plan-day ul{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.plan-empty{
+    margin: 0;
+    color: #98A2B3;
+    font-size: 0.875rem;
+}
+.plan-entry{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 0;
+    border-top: 1px solid #F2F4F7;
+}
+.plan-entry-main{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.plan-entry-main a{
+    color: #141718;
+    font-weight: 500;
+}
+.plan-entry-actions{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+.plan-shopping{
+    margin: 28px 0 8px;
+    padding-top: 16px;
+    border-top: 1px solid #D1D5DB;
+}
+ul.shopping-items{
+    list-style: none;
+    padding: 0;
+    margin: 16px 0;
+}
+.shopping-item{
+    border-bottom: 1px solid #F2F4F7;
+}
+.shopping-item label{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 12px;
+    padding: 10px 4px;
+    cursor: pointer;
+}
+.shopping-item-name{
+    font-weight: 500;
+    color: #141718;
+}
+.shopping-item-qty{
+    color: #475467;
+    font-size: 0.9375rem;
+}
+.shopping-item.is-checked .shopping-item-name,
+.shopping-item.is-checked .shopping-item-qty{
+    text-decoration: line-through;
+    color: #98A2B3;
+}
+
+@media (max-width: 800px) {
+    .header-auth{
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}

@@ -148,3 +148,75 @@ export async function registerUser(name, email, password) {
 export async function logoutUser() {
   await request("/api/auth/logout", { method: "POST" });
 }
+
+// ---- meal plans and shopping lists ----
+
+function pick(data, key) {
+  if (data?.[key] === undefined) {
+    throw new Error("The server returned an unexpected response.");
+  }
+  return data[key];
+}
+
+export async function fetchMealPlans() {
+  return pick(await request("/api/meal-plans"), "mealPlans");
+}
+
+// body: { name, startDate: "YYYY-MM-DD", endDate?: "YYYY-MM-DD" }
+export async function createMealPlan(body) {
+  return pick(await request("/api/meal-plans", { method: "POST", body }), "mealPlan");
+}
+
+export async function fetchMealPlan(id) {
+  return pick(await request(`/api/meal-plans/${encodeURIComponent(id)}`), "mealPlan");
+}
+
+export async function updateMealPlan(id, patch) {
+  return pick(await request(`/api/meal-plans/${encodeURIComponent(id)}`, { method: "PATCH", body: patch }), "mealPlan");
+}
+
+export async function deleteMealPlan(id) {
+  await request(`/api/meal-plans/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+export async function addMealPlanEntry(planId, { recipeId, date }) {
+  return pick(
+    await request(`/api/meal-plans/${encodeURIComponent(planId)}/entries`, { method: "POST", body: { recipeId, date } }),
+    "entry"
+  );
+}
+
+export async function updateMealPlanEntry(planId, entryId, patch) {
+  return pick(
+    await request(`/api/meal-plans/${encodeURIComponent(planId)}/entries/${encodeURIComponent(entryId)}`, { method: "PATCH", body: patch }),
+    "entry"
+  );
+}
+
+export async function deleteMealPlanEntry(planId, entryId) {
+  await request(`/api/meal-plans/${encodeURIComponent(planId)}/entries/${encodeURIComponent(entryId)}`, { method: "DELETE" });
+}
+
+export async function fetchShoppingLists() {
+  return pick(await request("/api/shopping-lists"), "shoppingLists");
+}
+
+// body: { mealPlanId, entryIds?, name? } - the list is built and saved by the server.
+export async function createShoppingList(body) {
+  return pick(await request("/api/shopping-lists", { method: "POST", body }), "shoppingList");
+}
+
+export async function fetchShoppingList(id) {
+  return pick(await request(`/api/shopping-lists/${encodeURIComponent(id)}`), "shoppingList");
+}
+
+export async function setShoppingItemChecked(listId, itemId, checked) {
+  return pick(
+    await request(`/api/shopping-lists/${encodeURIComponent(listId)}/items/${encodeURIComponent(itemId)}`, { method: "PATCH", body: { checked } }),
+    "item"
+  );
+}
+
+export async function deleteShoppingList(id) {
+  await request(`/api/shopping-lists/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
