@@ -6,18 +6,15 @@ import { useAuth } from "../src/auth/useAuth";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-// The recipe library. With favoritesOnly it shows the Favorites view instead of all recipes.
 export default function RecipesPage({ favoritesOnly = false }) {
   const { retry } = useAuth();
   const loadList = favoritesOnly ? fetchFavorites : fetchRecipes;
 
-  const [search, setSearch] = useState(""); // what is typed
-  const [q, setQ] = useState(""); // what is sent to the server (debounced)
+  const [search, setSearch] = useState("");
+  const [q, setQ] = useState("");
   const [difficulty, setDifficulty] = useState("");
   const [reloadCount, setReloadCount] = useState(0);
 
-  // `result.key` records which request the data belongs to. While it differs from the current
-  // request key, the page is loading - so no state has to be reset inside the effect.
   const requestKey = `${favoritesOnly}|${q}|${difficulty}|${reloadCount}`;
   const [result, setResult] = useState({ key: null, recipes: [], nextCursor: null, error: "" });
   const isLoading = result.key !== requestKey;
@@ -35,7 +32,8 @@ export default function RecipesPage({ favoritesOnly = false }) {
     let ignore = false;
     loadList({ q, difficulty })
       .then((data) => {
-        if (!ignore) setResult({ key: requestKey, recipes: data.recipes, nextCursor: data.nextCursor, error: "" });
+        if (!ignore)
+          setResult({ key: requestKey, recipes: data.recipes, nextCursor: data.nextCursor, error: "" });
       })
       .catch((err) => {
         if (ignore) return;
@@ -52,7 +50,11 @@ export default function RecipesPage({ favoritesOnly = false }) {
     setActionError("");
     try {
       const data = await loadList({ q, difficulty, cursor: result.nextCursor });
-      setResult((previous) => ({ ...previous, recipes: [...previous.recipes, ...data.recipes], nextCursor: data.nextCursor }));
+      setResult((prev) => ({
+        ...prev,
+        recipes: [...prev.recipes, ...data.recipes],
+        nextCursor: data.nextCursor,
+      }));
     } catch (err) {
       if (err.status === 401) return retry();
       setActionError(err.message);
@@ -69,13 +71,12 @@ export default function RecipesPage({ favoritesOnly = false }) {
       if (recipe.isFavorite) await unfavoriteRecipe(recipe.id);
       else await favoriteRecipe(recipe.id);
 
-      setResult((previous) => ({
-        ...previous,
-        // In the Favorites view, un-favoriting removes the card.
+      setResult((prev) => ({
+        ...prev,
         recipes:
           favoritesOnly && recipe.isFavorite
-            ? previous.recipes.filter((item) => item.id !== recipe.id)
-            : previous.recipes.map((item) =>
+            ? prev.recipes.filter((item) => item.id !== recipe.id)
+            : prev.recipes.map((item) =>
                 item.id === recipe.id ? { ...item, isFavorite: !recipe.isFavorite } : item
               ),
       }));
@@ -97,10 +98,19 @@ export default function RecipesPage({ favoritesOnly = false }) {
   const showEmpty = !isLoading && !result.error && result.recipes.length === 0;
 
   return (
-    <main className="recipes-page">
-      <h1>{favoritesOnly ? "Favorites" : "My recipes"}</h1>
+    <main className="flex-grow max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <h1 className="text-3xl font-extrabold text-warm-900">
+        {favoritesOnly ? "Favorites" : "My Recipes"}
+      </h1>
 
-      <form className="library-filters" role="search" onSubmit={(event) => { event.preventDefault(); setQ(search.trim()); }}>
+      <form
+        className="mt-5 mb-6 flex flex-wrap items-center gap-3"
+        role="search"
+        onSubmit={(event) => {
+          event.preventDefault();
+          setQ(search.trim());
+        }}
+      >
         <input
           type="search"
           aria-label="Search recipes"
@@ -108,11 +118,13 @@ export default function RecipesPage({ favoritesOnly = false }) {
           value={search}
           maxLength={100}
           onChange={(event) => setSearch(event.target.value)}
+          className="flex-1 min-w-[220px] px-3.5 py-2.5 rounded-xl border border-warm-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm bg-white placeholder:text-warm-600 outline-none transition"
         />
         <select
           aria-label="Filter by difficulty"
           value={difficulty}
           onChange={(event) => setDifficulty(event.target.value)}
+          className="px-3 py-2.5 rounded-xl border border-warm-200 bg-white text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition"
         >
           <option value="">All difficulties</option>
           <option value="easy">Easy</option>
@@ -120,37 +132,64 @@ export default function RecipesPage({ favoritesOnly = false }) {
           <option value="hard">Hard</option>
         </select>
         {hasFilters && (
-          <button type="button" className="link-button" onClick={clearFilters}>Clear filters</button>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="text-xs text-brand-600 hover:underline font-medium"
+          >
+            Clear filters
+          </button>
         )}
       </form>
 
-      {isLoading && <p className="recipe-status" role="status">Loading your recipes…</p>}
+      {isLoading && (
+        <p className="text-sm text-warm-600 text-center py-6" role="status">
+          Loading your recipes…
+        </p>
+      )}
 
       {!isLoading && result.error && (
-        <div className="recipe-error" role="alert">
-          <p>{result.error}</p>
-          <button type="button" className="auth-button" onClick={() => setReloadCount((count) => count + 1)}>
+        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-center text-sm text-rose-700">
+          <p className="mb-3">{result.error}</p>
+          <button
+            type="button"
+            onClick={() => setReloadCount((c) => c + 1)}
+            className="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold"
+          >
             Try again
           </button>
         </div>
       )}
 
-      {showEmpty && hasFilters && <p className="recipe-status">No recipes match your search.</p>}
+      {showEmpty && hasFilters && (
+        <p className="text-sm text-warm-600 text-center py-6">No recipes match your search.</p>
+      )}
       {showEmpty && !hasFilters && favoritesOnly && (
-        <p className="recipe-status">
-          No favorites yet. Tap the heart on a recipe to keep it here. <Link to="/recipes">Browse my recipes</Link>
+        <p className="text-sm text-warm-600 text-center py-6">
+          No favorites yet. Tap the heart on a recipe to keep it here.{" "}
+          <Link to="/recipes" className="text-brand-600 font-semibold hover:underline">
+            Browse my recipes
+          </Link>
         </p>
       )}
       {showEmpty && !hasFilters && !favoritesOnly && (
-        <p className="recipe-status">
-          You haven&apos;t saved any recipes yet. <Link to="/">Make your first one</Link>.
+        <p className="text-sm text-warm-600 text-center py-6">
+          You haven&apos;t saved any recipes yet.{" "}
+          <Link to="/" className="text-brand-600 font-semibold hover:underline">
+            Make your first one
+          </Link>
+          .
         </p>
       )}
 
-      {actionError && <p className="recipe-error" role="alert">{actionError}</p>}
+      {actionError && (
+        <p className="bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl p-3 mb-4" role="alert">
+          {actionError}
+        </p>
+      )}
 
       {!isLoading && result.recipes.length > 0 && (
-        <ul className="recipe-list">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 list-none p-0">
           {result.recipes.map((recipe) => (
             <RecipeCard
               key={recipe.id}
@@ -163,9 +202,16 @@ export default function RecipesPage({ favoritesOnly = false }) {
       )}
 
       {!isLoading && result.nextCursor && (
-        <button type="button" className="auth-button" onClick={loadMore} disabled={isLoadingMore}>
-          {isLoadingMore ? "Loading…" : "Load more"}
-        </button>
+        <div className="mt-6 text-center">
+          <button
+            type="button"
+            onClick={loadMore}
+            disabled={isLoadingMore}
+            className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-60 text-white text-xs font-bold transition"
+          >
+            {isLoadingMore ? "Loading…" : "Load more"}
+          </button>
+        </div>
       )}
     </main>
   );

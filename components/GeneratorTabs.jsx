@@ -1,11 +1,10 @@
 import { useRef } from "react";
 
 const TABS = [
-  { id: "ingredients", label: "Ingredients recipe" },
-  { id: "dish", label: "Dish recipe" },
+  { id: "ingredients", label: "Ingredients Recipe" },
+  { id: "dish", label: "Dish Recipe" },
 ];
 
-// Tabs for choosing how to get a recipe. Arrow keys, Home and End move between tabs.
 export default function GeneratorTabs({ value, onChange, disabled }) {
   const tabRefs = useRef({});
 
@@ -24,26 +23,38 @@ export default function GeneratorTabs({ value, onChange, disabled }) {
   }
 
   return (
-    <div className="generator-tabs" role="tablist" aria-label="How do you want to get a recipe?" onKeyDown={handleKeyDown}>
-      {TABS.map((tab) => (
-        <button
-          key={tab.id}
-          ref={(element) => {
-            tabRefs.current[tab.id] = element;
-          }}
-          type="button"
-          role="tab"
-          id={`generator-tab-${tab.id}`}
-          className="generator-tab"
-          aria-selected={value === tab.id}
-          aria-controls="generator-panel"
-          tabIndex={value === tab.id ? 0 : -1}
-          disabled={disabled}
-          onClick={() => onChange(tab.id)}
-        >
-          {tab.label}
-        </button>
-      ))}
+    <div
+      className="flex p-1.5 bg-warm-100 rounded-2xl max-w-md mx-auto border border-warm-200/60"
+      role="tablist"
+      aria-label="How do you want to get a recipe?"
+      onKeyDown={handleKeyDown}
+    >
+      {TABS.map((tab) => {
+        const active = value === tab.id;
+        return (
+          <button
+            key={tab.id}
+            ref={(el) => {
+              tabRefs.current[tab.id] = el;
+            }}
+            type="button"
+            role="tab"
+            id={`generator-tab-${tab.id}`}
+            aria-selected={active}
+            aria-controls="generator-panel"
+            tabIndex={active ? 0 : -1}
+            disabled={disabled}
+            onClick={() => onChange(tab.id)}
+            className={`flex-1 py-2.5 px-4 text-xs sm:text-sm rounded-xl transition text-center ${
+              active
+                ? "shadow-sm bg-brand-600 text-white font-semibold"
+                : "text-warm-600 font-semibold hover:text-warm-900"
+            } disabled:cursor-not-allowed`}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

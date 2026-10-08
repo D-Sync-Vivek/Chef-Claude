@@ -1,5 +1,4 @@
 import { Link, NavLink } from "react-router-dom";
-import chefClaude from "../src/assets/chef-claude-icon.png";
 import { useAuth } from "../src/auth/useAuth.js";
 
 export default function Header() {
@@ -13,41 +12,112 @@ export default function Header() {
     }
   }
 
+  const initials =
+    (user?.name || "")
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "?";
+
   return (
-    <>
-      <header className="header">
-        <Link to="/" className="header-brand">
-          <img className="header-image" src={chefClaude} alt="chef claude image" />
-          <span className="header-name">Chef Claude</span>
+    <header className="sticky top-0 z-40 bg-[#FAF8F5]/90 backdrop-blur-md border-b border-warm-200/80">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition-transform">
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              viewBox="0 0 24 24"
+            >
+              <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z" />
+              <line x1="6" x2="18" y1="17" y2="17" />
+            </svg>
+          </div>
+          <div className="flex flex-col">
+            <span className="font-extrabold text-xl tracking-tight text-warm-900 group-hover:text-brand-600 transition-colors">
+              Chef Claude
+            </span>
+            <span className="text-[10px] tracking-wider uppercase font-semibold text-brand-600 -mt-1">
+              Culinary AI Assistant
+            </span>
+          </div>
         </Link>
 
-        <nav className="header-auth" aria-label="Account">
+        <div className="flex items-center gap-3 sm:gap-4">
           {status === "authenticated" && (
             <>
-              <span className="header-user">Hi, {user.name}</span>
-              <button type="button" className="header-link-button" onClick={handleLogout}>
+              <div className="hidden lg:flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-warm-200 border border-warm-300 flex items-center justify-center font-bold text-warm-800 text-xs">
+                  {initials}
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-bold text-warm-900 leading-tight">{user.name}</p>
+                  <p className="text-[11px] text-warm-600 leading-none">Home Cook</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="text-xs text-warm-600 hover:text-brand-600 font-medium hover:underline"
+              >
                 Log out
               </button>
             </>
           )}
           {(status === "unauthenticated" || status === "error") && (
             <>
-              <Link to="/login">Log in</Link>
-              <Link to="/register">Sign up</Link>
+              <Link
+                to="/login"
+                className="text-xs font-semibold text-warm-600 hover:text-warm-900 px-3 py-2"
+              >
+                Log in
+              </Link>
+              <Link
+                to="/register"
+                className="text-xs font-semibold text-white bg-brand-600 hover:bg-brand-500 px-4 py-2 rounded-xl transition"
+              >
+                Sign up
+              </Link>
             </>
           )}
-        </nav>
-      </header>
+        </div>
+      </div>
 
       {status === "authenticated" && (
-        <nav className="main-nav" aria-label="Main">
-          <NavLink to="/" end>Generate</NavLink>
-          <NavLink to="/recipes">My recipes</NavLink>
-          <NavLink to="/favorites">Favorites</NavLink>
-          <NavLink to="/meal-plans">Meal planner</NavLink>
-          <NavLink to="/shopping-lists">Shopping lists</NavLink>
+        <nav
+          className="hidden md:flex items-center justify-center gap-1 px-4 pb-3"
+          aria-label="Main"
+        >
+          {[
+            { to: "/", label: "Generate", end: true },
+            { to: "/recipes", label: "My Recipes" },
+            { to: "/favorites", label: "Favorites" },
+            { to: "/meal-plans", label: "Meal Planner" },
+            { to: "/shopping-lists", label: "Shopping Lists" },
+          ].map(({ to, label, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                `px-3.5 py-1.5 text-sm rounded-full transition ${
+                  isActive
+                    ? "text-brand-600 bg-brand-50 font-semibold"
+                    : "text-warm-600 font-medium hover:text-warm-900 hover:bg-warm-100"
+                }`
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
         </nav>
       )}
-    </>
+    </header>
   );
 }

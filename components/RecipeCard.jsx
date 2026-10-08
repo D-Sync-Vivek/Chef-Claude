@@ -6,9 +6,14 @@ export default function RecipeCard({ recipe, onToggleFavorite, isBusy }) {
   const totalTime = recipe.prepTime + recipe.cookTime;
 
   return (
-    <li className="recipe-card">
-      <div className="recipe-card-top">
-        <Link to={`/recipes/${recipe.id}`} className="recipe-card-title">{recipe.title}</Link>
+    <li className="bg-white rounded-2xl border border-warm-200 p-5 shadow-warm-sm hover:shadow-warm-md transition flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-3">
+        <Link
+          to={`/recipes/${recipe.id}`}
+          className="text-lg font-bold text-warm-900 hover:text-brand-600 transition leading-tight"
+        >
+          {recipe.title}
+        </Link>
         <FavoriteButton
           isFavorite={recipe.isFavorite}
           onToggle={() => onToggleFavorite(recipe)}
@@ -16,13 +21,20 @@ export default function RecipeCard({ recipe, onToggleFavorite, isBusy }) {
           recipeTitle={recipe.title}
         />
       </div>
-      <p className="recipe-card-description">{recipe.description}</p>
-      <ul className="recipe-meta">
-        <li>{DIFFICULTY_LABELS[recipe.difficulty] ?? recipe.difficulty}</li>
-        <li title={`Prep ${recipe.prepTime} min + cook ${recipe.cookTime} min`}>{totalTime} min total</li>
-        <li>Serves {recipe.servings}</li>
-      </ul>
-      <span className="recipe-card-meta">
+      <p className="text-sm text-warm-600 line-clamp-2">{recipe.description}</p>
+      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-warm-700">
+        <span className="px-2.5 py-1 rounded-lg bg-warm-100">
+          {DIFFICULTY_LABELS[recipe.difficulty] ?? recipe.difficulty}
+        </span>
+        <span
+          className="px-2.5 py-1 rounded-lg bg-warm-100"
+          title={`Prep ${recipe.prepTime} min + cook ${recipe.cookTime} min`}
+        >
+          {totalTime} min total
+        </span>
+        <span className="px-2.5 py-1 rounded-lg bg-warm-100">Serves {recipe.servings}</span>
+      </div>
+      <span className="text-[11px] text-warm-600 mt-auto">
         Saved <time dateTime={recipe.createdAt}>{formatDate(recipe.createdAt)}</time>
       </span>
     </li>
