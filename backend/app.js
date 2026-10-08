@@ -12,6 +12,8 @@ import { sendSuccess } from "./utils/api-response.js";
 
 const app = express();
 
+if (env.trustProxy) app.set("trust proxy", env.trustProxy);
+
 app.use(
   cors({
     origin(origin, callback) {

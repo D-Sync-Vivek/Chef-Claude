@@ -4,7 +4,7 @@ This project takes a list of ingredients from a logged-in user, asks a large lan
 
 ## What the Project Does
 
-1. A logged-in user enters ingredients (and optionally servings, difficulty, max cooking time).
+1. A logged-in user picks a tab on the home page and asks for a recipe either **from ingredients** they have ("Ingredients recipe" tab) or **from a dish name** such as "Paneer Butter Masala" ("Dish recipe" tab), optionally with servings, difficulty and max cooking time.
 2. `POST /api/recipes/generate` validates the request.
 3. The AI service asks the model for **one JSON object** (no Markdown).
 4. The reply is parsed and checked with Zod. If it is invalid, the model is asked once more, told what was wrong. If it is still invalid, the user gets a controlled error and **nothing is saved**.
@@ -17,6 +17,7 @@ Flow: `route → requireAuth → validate → controller → recipe-ai.service (
 - Prompt and retry logic: `backend/services/recipe-ai.service.js`. Output schema: `backend/schemas/ai-recipe.schema.js`. JSON extraction (tolerates ```json fences and surrounding prose): `backend/utils/parse-model-json.js`. Database access: `backend/services/recipe.service.js`.
 - The model's answer is untrusted. It must have `title`, `description`, `prepTime`/`cookTime` (whole minutes), `servings`, `difficulty` (`easy|medium|hard`), `ingredients` (`name`, `quantity`, `unit`) and `instructions` (strings). Numbers given as quantities are turned into text; `Step 1:` style prefixes are stripped.
 - Truncated replies (`finish_reason: length`) are rejected. Up to 2 attempts are made. A Hugging Face outage is **not** retried and returns a 502.
+- Two generation modes share all of the above (validation, retry, claims filter, saving). They differ only in the prompt: `mode: "ingredients"` builds a recipe from the user's ingredients, `mode: "dish"` writes the standard recipe for the named dish. In dish mode the model may answer that the text is not a dish; that ends the request at once with a friendly `422` (no retry, nothing saved). Nothing checks that the returned title matches the requested dish; that relies on the prompt.
 - Optional preferences the server can actually check: `servings` (exactly), `difficulty` (exactly) and `maxCookingTime` (the recipe's `cookTime` must be at most this many minutes). If the model ignores one, that counts as invalid output. `diet` and `cuisine` are intentionally **not** offered, because the server cannot verify them (a wrong "vegan" or "gluten-free" claim would be a real risk).
 - The model call is prompt-based JSON, not provider-enforced JSON mode, because support differs between Hugging Face providers. Validation is what protects the database.
 
@@ -24,7 +25,7 @@ Flow: `route → requireAuth → validate → controller → recipe-ai.service (
 
 | Endpoint | Description |
 | --- | --- |
-| `POST /api/recipes/generate` | Body: `{ ingredients: string[1-20], servings?: 1-20, difficulty?: "easy"\|"medium"\|"hard", maxCookingTime?: 1-600 }`. Returns `201 { recipe }` (saved). `400` invalid request, `401` not logged in, `502` AI unavailable or invalid output. |
+| `POST /api/recipes/generate` | Body: `{ mode: "ingredients", ingredients: string[1-20] }` **or** `{ mode: "dish", dishName: string[2-80] }`, plus optional `servings` (1-20), `difficulty` (`easy`\|`medium`\|`hard`) and `maxCookingTime` (1-600). A body without `mode` that has `ingredients` is the original format and still works. Dish names are trimmed, must contain a letter or number, and may not contain nutrition or health claims such as "detox" or "low calorie" (`400`). Returns `201 { recipe }` (saved). `400` invalid request, `401` not logged in, `422` the text is not a dish, `429` too many requests, `502` AI unavailable or invalid output. |
 | `GET /api/recipes?limit=20&cursor=<id>&q=<text>&difficulty=<d>` | Your recipes, newest first (summaries). Returns `{ recipes, nextCursor }`; `limit` is 1-50. Optional filters: `q` matches the title or an ingredient name (case-insensitive, literal text), `difficulty` is `easy`, `medium` or `hard`. |
 | `GET /api/recipes/favorites` | Your favorite recipes, most recently favorited first. Same `limit`, `cursor`, `q` and `difficulty` options. |
 | `POST /api/recipes/:id/favorite` | Marks your recipe as a favorite. `201` when added, `200` if it already was (no duplicates, safe to repeat). |
@@ -91,6 +92,18 @@ How ingredients are merged (`backend/utils/ingredient-aggregation.js`):
 
 Everything is scoped to the logged-in user; another user's plans, entries and lists return `404`, the same as missing ones. Run `npm run db:migrate` to create the new tables (`MealPlan`, `MealPlanEntry`, `ShoppingList`, `ShoppingListItem`).
 
+### Rate limiting
+
+Limits are counted in the server's memory and use `express-rate-limit`. Blocked requests get `429` with the usual JSON error plus `Retry-After`.
+
+| What | Default | Counted per |
+| --- | --- | --- |
+| Recipe generation and transformation (both call the AI; one shared budget; invalid requests count too) | 20 per 15 minutes | logged-in user |
+| Failed logins (successful logins never count; a locked-out IP is refused even with the right password) | 10 per 15 minutes | IP address |
+| Sign-ups | 10 per 15 minutes | IP address |
+
+Change them with `AI_RATE_LIMIT_MAX`, `AI_RATE_LIMIT_WINDOW_MINUTES`, `AUTH_RATE_LIMIT_MAX` and `AUTH_RATE_LIMIT_WINDOW_MINUTES` in `backend/.env`. Invalid values stop the server at startup. **Behind a reverse proxy or hosting platform, set `TRUST_PROXY` to the number of proxies in front of the API** (usually `1`); otherwise every visitor looks like the same IP and shares one login limit. Do not set it when the API is reached directly, because then clients could fake their IP. Counters reset when the server restarts and are not shared between several server instances (that would need a shared store such as Redis).
+
 ### Requirements
 - Node.js environment
 - Hugging Face access token, set only in the backend environment (`HF_ACCESS_TOKEN`)
@@ -155,5 +168,4 @@ Frontend routes: `/` (generator), `/recipes` (library with search and difficulty
 - Recipe text from the model is stored and displayed as plain text only.
 
 ### Future Improvements
-- Rate limiting on login and recipe generation.
 - Token revocation (server-side sessions or a token version).

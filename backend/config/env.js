@@ -26,6 +26,27 @@ if (!["lax", "strict", "none"].includes(sameSite)) {
   throw new Error('AUTH_COOKIE_SAMESITE must be "lax", "strict" or "none"');
 }
 
+function positiveInteger(name, fallback) {
+  const raw = process.env[name];
+  if (raw === undefined || raw === "") return fallback;
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error(`${name} must be a positive whole number`);
+  }
+  return value;
+}
+
+// How many reverse proxies sit in front of the API (0 = none). Needed so rate limits see each
+// visitor's real IP instead of the proxy's. Only a number is accepted, because "trust everything"
+// would let anyone fake their IP.
+function parseTrustProxy(raw) {
+  if (raw === undefined || raw === "") return false;
+  if (!/^\d+$/.test(raw)) throw new Error("TRUST_PROXY must be the number of proxies in front of the API, e.g. 1");
+  return Number(raw) === 0 ? false : Number(raw);
+}
+
+const MINUTE_MS = 60 * 1000;
+
 export const env = {
   nodeEnv,
   isProduction,
@@ -37,6 +58,13 @@ export const env = {
   authTokenTtlSeconds: AUTH_TOKEN_TTL_SECONDS,
   // "none" is needed only when the frontend and API are on different sites; browsers require Secure with it.
   authCookieSameSite: sameSite,
+  trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
+  // Per logged-in user, shared by recipe generation and recipe transformation (both call the AI).
+  aiRateLimitMax: positiveInteger("AI_RATE_LIMIT_MAX", 20),
+  aiRateLimitWindowMs: positiveInteger("AI_RATE_LIMIT_WINDOW_MINUTES", 15) * MINUTE_MS,
+  // Per IP address, for failed logins and for sign-ups (counted separately).
+  authRateLimitMax: positiveInteger("AUTH_RATE_LIMIT_MAX", 10),
+  authRateLimitWindowMs: positiveInteger("AUTH_RATE_LIMIT_WINDOW_MINUTES", 15) * MINUTE_MS,
   clientOrigins:
     configuredOrigins.length > 0
       ? configuredOrigins

@@ -841,3 +841,76 @@ ul.shopping-items{
         justify-content: center;
     }
 }
+
+/* Recipe generator tabs (GeneratorTabs.jsx, DishNameForm.jsx) */
+.generator{
+    display: flex;
+    align-items: flex-start;
+    gap: 28px;
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+}
+.generator-tabs{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 0 0 190px;
+}
+.generator-tab{
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid #D1D5DB;
+    background: white;
+    color: #344054;
+    font-family: Inter, sans-serif;
+    font-size: 0.9375rem;
+    text-align: left;
+    cursor: pointer;
+}
+.generator-tab:hover:not(:disabled){
+    border-color: #D17557;
+}
+.generator-tab[aria-selected="true"]{
+    border-color: #D17557;
+    background: #FEF3E8;
+    color: #D17557;
+    font-weight: 500;
+}
+.generator-tab:disabled{
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+.generator-panel{
+    flex: 1;
+    min-width: 0;
+}
+.generator-hint{
+    margin: 0 0 14px;
+    text-align: center;
+    color: #475467;
+    font-size: 0.9375rem;
+}
+.dish-form > button:disabled{
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+#dishRecipeBtn:hover:not(:disabled){
+    cursor: pointer;
+}
+
+@media (max-width: 700px) {
+    .generator{
+        flex-direction: column;
+        gap: 16px;
+    }
+    .generator-tabs{
+        flex-direction: row;
+        flex: none;
+        width: 100%;
+    }
+    .generator-tab{
+        flex: 1;
+        text-align: center;
+    }
+}

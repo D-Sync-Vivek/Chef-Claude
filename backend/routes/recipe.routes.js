@@ -12,6 +12,7 @@ import {
   unfavoriteRecipe,
 } from "../controllers/favorite.controller.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
+import { aiLimiter } from "../middleware/rate-limit.middleware.js";
 import { validateBody, validateParams, validateQuery } from "../middleware/validate.middleware.js";
 import {
   generateRecipeRequestSchema,
@@ -25,12 +26,12 @@ const router = Router();
 
 router.use(requireAuth); // every recipe route needs a logged-in user
 
-router.post("/generate", validateBody(generateRecipeRequestSchema), generateRecipe);
+router.post("/generate", aiLimiter, validateBody(generateRecipeRequestSchema), generateRecipe);
 // "/favorites" must be declared before "/:id", otherwise "favorites" would be read as a recipe id.
 router.get("/favorites", validateQuery(listRecipesQuerySchema), listFavorites);
 router.get("/", validateQuery(listRecipesQuerySchema), listRecipes);
 router.get("/:id", validateParams(recipeIdParamsSchema), getRecipe);
-router.post("/:id/transform", validateParams(recipeIdParamsSchema), validateBody(transformRequestSchema), transform);
+router.post("/:id/transform", aiLimiter, validateParams(recipeIdParamsSchema), validateBody(transformRequestSchema), transform);
 router.post("/:id/transform/save", validateParams(recipeIdParamsSchema), validateBody(saveTransformedRequestSchema), saveTransformed);
 router.post("/:id/favorite", validateParams(recipeIdParamsSchema), favoriteRecipe);
 router.delete("/:id/favorite", validateParams(recipeIdParamsSchema), unfavoriteRecipe);

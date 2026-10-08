@@ -11,9 +11,12 @@ import { sendSuccess } from "../utils/api-response.js";
 
 export async function generateRecipe(req, res, next) {
   try {
-    const { ingredients, servings, difficulty, maxCookingTime } = req.body;
+    // req.body is already validated: mode is "ingredients" or "dish" and the matching field is present.
+    const { mode, ingredients, dishName, servings, difficulty, maxCookingTime } = req.body;
     const generated = await generateStructuredRecipe({
+      mode,
       ingredients,
+      dishName,
       preferences: { servings, difficulty, maxCookingTime },
     });
     const recipe = await createRecipeForUser(req.user.id, generated);
