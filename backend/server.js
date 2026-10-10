@@ -1,9 +1,14 @@
 import app from "./app.js";
 import { env } from "./config/env.js";
 import { disconnectPrisma } from "./db/prisma.js";
+import { describeAiProviders } from "./services/ai/index.js";
 
-if (!env.hfAccessToken) {
-  console.warn("HF_ACCESS_TOKEN is not set. POST /api/recipe will fail until it is configured.");
+const aiProviders = describeAiProviders();
+if (aiProviders.configured.length === 0) {
+  console.warn("No AI provider is configured (set GEMINI_API_KEY, GROQ_API_KEY, HF_ACCESS_TOKEN or OPENAI_API_KEY). Recipe generation will fail until one is.");
+} else {
+  console.log(`AI providers in priority order: ${aiProviders.configured.join(" -> ")}`);
+  if (aiProviders.skipped.length > 0) console.log(`AI providers skipped (no API key): ${aiProviders.skipped.join(", ")}`);
 }
 
 if (env.jwtSecret.length < 32) {

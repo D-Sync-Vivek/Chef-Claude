@@ -45,14 +45,37 @@ function parseTrustProxy(raw) {
   return Number(raw) === 0 ? false : Number(raw);
 }
 
-const MINUTE_MS = 60 * 1000;
+const SECOND_MS = 1000;
+const MINUTE_MS = 60 * SECOND_MS;
+
+// Comma-separated list, e.g. AI_PROVIDER_ORDER=gemini,groq,huggingface,openai
+function parseList(raw, fallback) {
+  const items = (raw || "")
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+  return items.length > 0 ? items : fallback;
+}
+
+const DEFAULT_AI_PROVIDER_ORDER = ["gemini", "groq", "huggingface", "openai"];
 
 export const env = {
   nodeEnv,
   isProduction,
   port: Number(process.env.PORT) || 3001,
+  // AI providers. AI_PROVIDER_ORDER is the priority order; a provider without its API key is skipped.
+  aiProviderOrder: parseList(process.env.AI_PROVIDER_ORDER, DEFAULT_AI_PROVIDER_ORDER),
+  aiProviderTimeoutMs: positiveInteger("AI_PROVIDER_TIMEOUT_SECONDS", 30) * SECOND_MS, // one provider call
+  aiTotalTimeoutMs: positiveInteger("AI_TOTAL_TIMEOUT_SECONDS", 100) * SECOND_MS, // one request, all providers
+  geminiApiKey: process.env.GEMINI_API_KEY || "",
+  geminiModel: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
+  groqApiKey: process.env.GROQ_API_KEY || "",
+  groqModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
   hfAccessToken: process.env.HF_ACCESS_TOKEN || "",
   hfModel: process.env.HF_MODEL || "Qwen/Qwen2.5-7B-Instruct",
+  openaiApiKey: process.env.OPENAI_API_KEY || "",
+  openaiModel: process.env.OPENAI_MODEL || "gpt-6-luna",
+  openaiReasoningEffort: process.env.OPENAI_REASONING_EFFORT || "", // optional; only reasoning models accept it
   databaseUrl: process.env.DATABASE_URL || "",
   jwtSecret,
   authTokenTtlSeconds: AUTH_TOKEN_TTL_SECONDS,
