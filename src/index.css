@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme {
+  /* App palette (orange / warm) — also used by the landing page */
   --color-brand-50: #FDF7F4;
   --color-brand-100: #FCEEE8;
   --color-brand-200: #F8D8CC;
@@ -16,20 +17,21 @@
   --color-warm-800: #3D362E;
   --color-warm-900: #231F1A;
 
-  --color-surface: #FAF8F5;
-  --color-surface-low: #F5F1EB;
-  --color-surface-lowest: #FFFFFF;
-  --color-surface-high: #ECE5DB;
-
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-serif: "Newsreader", Georgia, serif;
+  --font-handwriting: "Caveat", cursive;
 
   --shadow-warm-sm: 0 2px 8px -2px rgba(61, 54, 46, 0.06), 0 1px 4px -1px rgba(61, 54, 46, 0.04);
   --shadow-warm-md: 0 10px 25px -4px rgba(61, 54, 46, 0.08), 0 4px 10px -2px rgba(61, 54, 46, 0.04);
   --shadow-warm-lg: 0 20px 35px -6px rgba(61, 54, 46, 0.1), 0 8px 16px -4px rgba(61, 54, 46, 0.05);
+
+  --shadow-card-float: 0 20px 40px -15px rgba(211, 69, 27, 0.08), 0 0 25px 0 rgba(0, 0, 0, 0.05);
+  --shadow-subtle: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
 }
 
 * { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
 
 html, body, #root { min-height: 100%; }
 

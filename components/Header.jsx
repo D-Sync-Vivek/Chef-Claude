@@ -1,5 +1,6 @@
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../src/auth/useAuth.js";
+import { ChefLogo } from "./LandingPage.jsx";
 
 export default function Header() {
   const { status, user, logout } = useAuth();
@@ -25,20 +26,7 @@ export default function Header() {
     <header className="sticky top-0 z-40 bg-[#FAF8F5]/90 backdrop-blur-md border-b border-warm-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition-transform">
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              viewBox="0 0 24 24"
-            >
-              <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z" />
-              <line x1="6" x2="18" y1="17" y2="17" />
-            </svg>
-          </div>
+            <ChefLogo/>
           <div className="flex flex-col">
             <span className="font-extrabold text-xl tracking-tight text-warm-900 group-hover:text-brand-600 transition-colors">
               Chef Claude
